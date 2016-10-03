@@ -1,0 +1,19 @@
+.inertial-container {
+  width: 400px;
+}
+
+.inertial-container > div {
+  border: 3px solid black;
+}
+
+.buffer {
+  width: inherit;
+  height: 400px;
+  background-color: pink;
+}
+
+.scroller {
+  width: inherit;
+  height: 800px;
+  background-color: lightgray;
+}

@@ -1,0 +1,38 @@
+{
+  "name": "vanilla-scroller",
+  "version": "0.0.1",
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "presets": [
+      "es2015"
+    ]
+  },
+  "scripts": {
+    "build": "webpack -p --progress",
+    "watch": "webpack-dev-server --content-base src/ --inline --hot",
+    "lint": "eslint src/ --ext .js"
+  },
+  "dependencies": {
+    "debounce": "^1.0.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.4.5",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.3.13",
+    "css-loader": "^0.23.1",
+    "eslint": "^2.0.0",
+    "file-loader": "^0.8.5",
+    "json-loader": "^0.5.3",
+    "style-loader": "^0.13.0",
+    "webpack": "^1.12.13",
+    "webpack-dev-server": "^1.12.1"
+  }
+}
