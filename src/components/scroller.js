@@ -14,17 +14,17 @@ export class Scroller {
     this.tween = null;
     this.onScroll = this.onScroll.bind(this);
     this.onLoad = this.onLoad.bind(this);
-    this._nUnload = this.onUnload.bind(this);
+    this.onUnload = this.onUnload.bind(this);
     this.animate = this.animate.bind(this);
-    this.cancel = this.cancel.bind(this);
+    this.disableScrolling = this.disableScrolling.bind(this);
     this.draw = this.draw.bind(this);
   }
     
   // initialize window event handlers
   onLoad() {
     console.log("load");
-    window.addEventListener("mousewheel", this.cancel);
-    window.addEventListener("scroll", debounce(this.onScroll, 300));
+    window.addEventListener("mousewheel", debounce(this.onScroll, 750));
+    window.addEventListener("scroll", debounce(this.onScroll, 750));
   //  window.addEventListener("resize", this.handleResize);
   }
 
@@ -34,10 +34,12 @@ export class Scroller {
   }
 
   onScroll() {
-    const bounds = document.getElementById("top-buffer").getBoundingClientRect();
-    console.log(bounds);
-    if (bounds.bottom > 0) {
-      this.animate(bounds);
+    if (!this.animating) {
+      this.disableScrolling();
+      const topBuffer = document.getElementById("top-buffer").getBoundingClientRect();
+      if (topBuffer.bottom > 0) {
+        this.animate(topBuffer);
+      }
     }
   }
 
@@ -52,14 +54,8 @@ export class Scroller {
       .onUpdate(function() {
         scrollTo(this.y);
       })
+      .onComplete(() => this.animating = false)
       .start();
-  }
-
-  cancel() {
-    if (this.tween !== null) {
-      this.tween.stop();
-      this.tween = null;
-    }
   }
 
   draw() {
