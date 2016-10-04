@@ -43,7 +43,7 @@ export class Scroller {
 
   animate(bounds) {
     this.animating = true;
-    const current = { y: window.pageYOffset }
+    const current = { y: window.pageYOffset };
     const target = { y: window.pageYOffset + bounds.bottom };
     const timespan = 400;
 
