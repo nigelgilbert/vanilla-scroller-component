@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
-import debounce from "debounce";
-import TWEEN from "tween.js";
-import tweener from "../services/tweener.js";
-import "./scroller.css";
+import debounce from 'debounce';
+import TWEEN from 'tween.js';
+import tweener from '../services/tweener.js';
+import './scroller.css';
 
 let tween = null;
 let isAnimating = false;
@@ -41,14 +41,14 @@ function preventDefault(event) {
 }
 
 function onScroll(event) {
-  const topBufferRect = document.getElementById("top-buffer").getBoundingClientRect();
+  const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
   if (!isAnimating && topBufferRect.bottom > 0) {
     beginAnimation(topBufferRect);
   }
 }
 
 function checkAnimationCompletion() {
-  const topBufferRect = document.getElementById("top-buffer").getBoundingClientRect();
+  const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
   if (topBufferRect.bottom <= 0 && tween !== null) {
     stopAnimation();
   }
@@ -68,7 +68,7 @@ function beginAnimation(bounds) {
       window.scrollTo(0, this.y);
       checkAnimationCompletion();
     })
-    .onComplete(() => isAnimating = false)
+    .onComplete(() => stopAnimation())
     .start();
 }
 
