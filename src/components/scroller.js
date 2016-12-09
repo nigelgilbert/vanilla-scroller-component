@@ -25,7 +25,7 @@ function enableScrolling() {
     document.body.style.overflow = "scroll";
     window.onscroll = debounce(onScroll, 250);
     window.onmousewheel = debounce(onScroll, 250);
-  }, 150);
+  });
 }
 
 function disableScrolling() {
@@ -59,7 +59,7 @@ function checkAnimationCompletion() {
 
 function checkAjaxTrigger(topBufferRect) {
   const ajaxTriggerRect = document.getElementById('ajax-trigger').getBoundingClientRect();
-  if (ajaxTriggerRect.bottom <= 0) {
+  if (ajaxTriggerRect.bottom > 0) {
     // simulate ajax
     setTimeout(() => {
       console.log('Data loaded.');
@@ -82,7 +82,6 @@ function beginAnimation(bounds) {
       checkAnimationCompletion();
     })
     .onComplete(() => stopAnimation())
-    .onComplete(() => onScroll())
     .start();
 }
 
