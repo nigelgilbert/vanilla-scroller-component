@@ -1,14 +1,17 @@
-.inertial-container {
+#inertial-container {
   width: 100%;
 }
 
-.inertial-container > div {
+#inertial-container > div {
   border: 3px solid black;
 }
 
 .buffer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: inherit;
-  height: 400px;
+  height: 300px;
   background-color: pink;
 }
 
