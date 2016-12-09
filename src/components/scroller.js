@@ -1,6 +1,6 @@
 'use strict';
 
-import debounce from 'debounce';
+import debounce from 'lodash.debounce';
 import TWEEN from 'tween.js';
 import tweener from '../services/tweener.js';
 import './scroller.css';
@@ -15,19 +15,21 @@ export const Scroller = {
 }
 
 function onLoad() {
-  enableScrolling()
+  enableScrolling();
 }
 
 function onUnload() {}
 
 function enableScrolling() {
   setTimeout(() => {
-    window.onscroll = debounce(onScroll, 400);
-    window.onmousewheel = debounce(onScroll, 400); 
-  }, 250);
+    document.body.style.overflow = "scroll";
+    window.onscroll = debounce(onScroll, 250);
+    window.onmousewheel = debounce(onScroll, 250);
+  });
 }
 
 function disableScrolling() {
+  document.body.style.overflow = "hidden";
   window.onscroll = preventDefault;
   window.onmousewheel = preventDefault;
 }
@@ -37,11 +39,12 @@ function preventDefault(event) {
   if (event.preventDefault) {
     event.preventDefault();
   }
-  event.returnValue = false;  
+  event.returnValue = false;
 }
 
-function onScroll(event) {
+function onScroll() {
   const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
+  checkAjaxTrigger(topBufferRect);
   if (!isAnimating && topBufferRect.bottom > 0) {
     beginAnimation(topBufferRect);
   }
@@ -54,10 +57,20 @@ function checkAnimationCompletion() {
   }
 }
 
+function checkAjaxTrigger(topBufferRect) {
+  const ajaxTriggerRect = document.getElementById('ajax-trigger').getBoundingClientRect();
+  if (ajaxTriggerRect.bottom > 0) {
+    // simulate ajax
+    setTimeout(() => {
+      console.log('Data loaded.');
+    }, 100);
+  }
+}
+
 function beginAnimation(bounds) {
   isAnimating = true;
   disableScrolling();
-  
+
   const current = { y: window.pageYOffset };
   const target = { y: window.pageYOffset + bounds.bottom };
   const timespan = 400;
@@ -73,8 +86,11 @@ function beginAnimation(bounds) {
 }
 
 function stopAnimation() {
-  tween.stop();
-  tween = null;
+  if (tween !== null) {
+    tween.stop();
+    tween = null;
+  };
+
   isAnimating = false;
   enableScrolling();
 }
@@ -87,8 +103,10 @@ function draw(target) {
 
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(target).innerHTML  = `
-      <div id="inertia" class="inertial-container">
-        <div id="top-buffer" class="buffer"></div>
+      <div id="inertial-container">
+        <div id="top-buffer" class="buffer">
+          <div id="ajax-trigger">Loading</div>
+        </div>
         <div class="scroller"></div>
         <div id="bottom-buffer" class="buffer"></div>
       </div>
