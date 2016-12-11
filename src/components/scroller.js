@@ -2,36 +2,39 @@
 
 import debounce from 'lodash.debounce';
 import TWEEN from 'tween.js';
+import async from 'async';
 import tweener from '../services/tweener.js';
+import visibility from '../services/visibility.js';
 import './scroller.css';
 
 let tween = null;
 let isAnimating = false;
-let wheelHandler = null;
-let scrollHandler = null;
 
 export const Scroller = {
   draw: draw
 }
 
 function onLoad() {
+  resetAnimation();
   enableScrolling();
+  visibility(onNotVisible);
 }
 
 function onUnload() {}
 
-function enableScrolling() {
-  setTimeout(() => {
-    document.body.style.overflow = "scroll";
-    window.onscroll = debounce(onScroll, 250);
-    window.onmousewheel = debounce(onScroll, 250);
-  });
+function enableScrolling(callback) {
+  window.onscroll = debounce(onScroll, 250);
+  window.onmousewheel = debounce(onScroll, 250);
+  document.body.style.overflow = "scroll";
+  isAnimating = false;
+  if (callback) callback();
 }
 
-function disableScrolling() {
+function disableScrolling(callback) {
   document.body.style.overflow = "hidden";
   window.onscroll = preventDefault;
   window.onmousewheel = preventDefault;
+  if (callback) callback();
 }
 
 function preventDefault(event) {
@@ -46,53 +49,53 @@ function onScroll() {
   const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
   checkAjaxTrigger(topBufferRect);
   if (!isAnimating && topBufferRect.bottom > 0) {
-    beginAnimation(topBufferRect);
+    async.series([disableScrolling, beginAnimation]);
   }
 }
 
-function checkAnimationCompletion() {
+function onNotVisible() {
+  async.series([cleanupAnimation, resetAnimation, enableScrolling]);
+}
+
+function resetAnimation(callback) {
   const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
-  if (topBufferRect.bottom <= 0 && tween !== null) {
-    stopAnimation();
+  if (topBufferRect.bottom > 0) {
+    window.scrollTo(0, window.pageYOffset + topBufferRect.bottom);
   }
+  if (callback) callback();
 }
 
 function checkAjaxTrigger(topBufferRect) {
   const ajaxTriggerRect = document.getElementById('ajax-trigger').getBoundingClientRect();
   if (ajaxTriggerRect.bottom > 0) {
-    // simulate ajax
     setTimeout(() => {
-      console.log('Data loaded.');
+      console.log('data loaded;');
     }, 100);
   }
 }
 
-function beginAnimation(bounds) {
+function beginAnimation() {
+  const bounds = document.getElementById('top-buffer').getBoundingClientRect();
   isAnimating = true;
-  disableScrolling();
 
   const current = { y: window.pageYOffset };
   const target = { y: window.pageYOffset + bounds.bottom };
   const timespan = 400;
 
   tween = tweener(current, target, timespan)
-    .easing(TWEEN.Easing.Circular.Out)
-    .onUpdate(function() {
-      window.scrollTo(0, this.y);
-      checkAnimationCompletion();
-    })
-    .onComplete(() => stopAnimation())
-    .start();
+  .easing(TWEEN.Easing.Circular.Out)
+  .onUpdate(function() {
+    window.scrollTo(0, this.y);
+  })
+  .onComplete(() => async.series([cleanupAnimation, resetAnimation, enableScrolling]))
+  .start();
 }
 
-function stopAnimation() {
+function cleanupAnimation(callback) {
   if (tween !== null) {
-    tween.stop();
     tween = null;
   };
-
-  isAnimating = false;
-  enableScrolling();
+  if (callback) callback();
 }
 
 function draw(target) {
