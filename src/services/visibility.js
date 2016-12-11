@@ -7,10 +7,10 @@ let stateKey;
 let eventKey;
 
 const keys = {
-  hidden: "visibilitychange",
-  webkitHidden: "webkitvisibilitychange",
-  mozHidden: "mozvisibilitychange",
-  msHidden: "msvisibilitychange"
+  hidden: 'visibilitychange',
+  webkitHidden: 'webkitvisibilitychange',
+  mozHidden: 'mozvisibilitychange',
+  msHidden: 'msvisibilitychange'
 };
 
 for (stateKey in keys) {

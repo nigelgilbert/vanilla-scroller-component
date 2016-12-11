@@ -15,8 +15,7 @@ export const Scroller = {
 }
 
 function onLoad() {
-  resetAnimation();
-  enableScrolling();
+  async.series([resetAnimation, enableScrolling]);
   visibility(onNotVisible);
 }
 
@@ -32,12 +31,12 @@ function enableScrolling(callback) {
 
 function disableScrolling(callback) {
   document.body.style.overflow = "hidden";
-  window.onscroll = preventDefault;
-  window.onmousewheel = preventDefault;
+  window.onscroll = preventDefaultHandler;
+  window.onmousewheel = preventDefaultHandler;
   if (callback) callback();
 }
 
-function preventDefault(event) {
+function preventDefaultHandler(event) {
   event = event || window.event;
   if (event.preventDefault) {
     event.preventDefault();
@@ -65,7 +64,7 @@ function resetAnimation(callback) {
   if (callback) callback();
 }
 
-function checkAjaxTrigger(topBufferRect) {
+function checkAjaxTrigger() {
   const ajaxTriggerRect = document.getElementById('ajax-trigger').getBoundingClientRect();
   if (ajaxTriggerRect.bottom > 0) {
     setTimeout(() => {
@@ -75,24 +74,25 @@ function checkAjaxTrigger(topBufferRect) {
 }
 
 function beginAnimation() {
-  const bounds = document.getElementById('top-buffer').getBoundingClientRect();
+  const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
   isAnimating = true;
 
   const current = { y: window.pageYOffset };
-  const target = { y: window.pageYOffset + bounds.bottom };
+  const target = { y: window.pageYOffset + topBufferRect.bottom };
   const timespan = 400;
 
   tween = tweener(current, target, timespan)
-  .easing(TWEEN.Easing.Circular.Out)
-  .onUpdate(function() {
-    window.scrollTo(0, this.y);
-  })
-  .onComplete(() => async.series([cleanupAnimation, resetAnimation, enableScrolling]))
-  .start();
+    .easing(TWEEN.Easing.Circular.Out)
+    .onUpdate(function() {
+      window.scrollTo(0, this.y);
+    })
+    .onComplete(() => async.series([cleanupAnimation, resetAnimation, enableScrolling]))
+    .start();
 }
 
 function cleanupAnimation(callback) {
   if (tween !== null) {
+    // teen.stop(); is this necessary?
     tween = null;
   };
   if (callback) callback();
