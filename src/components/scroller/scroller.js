@@ -3,8 +3,8 @@
 import debounce from 'lodash.debounce';
 import TWEEN from 'tween.js';
 import async from 'async';
-import tweener from '../services/tweener.js';
-import visibility from '../services/visibility.js';
+import tweener from '../../services/tweener.js';
+import visibility from '../../services/visibility.js';
 import './scroller.css';
 
 let tween = null;
@@ -86,7 +86,7 @@ function beginAnimation() {
     .onUpdate(function() {
       window.scrollTo(0, this.y);
     })
-    .onComplete(() => async.series([cleanupAnimation, resetAnimation, enableScrolling]))
+    .onComplete(() => async.series([cleanupAnimation, enableScrolling]))
     .start();
 }
 
