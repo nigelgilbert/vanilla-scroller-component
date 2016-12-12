@@ -7,11 +7,17 @@ import tweener from '../../services/tweener.js';
 import visibility from '../../services/visibility.js';
 import './scroller.css';
 
+import { Feed } from '../feed/feed.js';
+
 let tween = null;
 let isAnimating = false;
 
+let buffer;
+
 export const Scroller = {
-  draw: draw
+  bootstrap: bootstrap
+  // onPulldown: onPulldown,
+  // onLoad: onLoad 
 }
 
 function onLoad() {
@@ -19,7 +25,14 @@ function onLoad() {
   visibility(onNotVisible);
 }
 
-function onUnload() {}
+function onMount() {
+  buffer = document.getElementById('top-buffer');
+  Feed.bootstrap('card-feed');
+}
+
+function onRefresh() {
+  Feed.refresh();
+}
 
 function enableScrolling(callback) {
   window.onscroll = debounce(onScroll, 250);
@@ -45,10 +58,10 @@ function preventDefaultHandler(event) {
 }
 
 function onScroll() {
-  const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
-  checkAjaxTrigger(topBufferRect);
+  const topBufferRect = buffer.getBoundingClientRect();
   if (!isAnimating && topBufferRect.bottom > 0) {
-    async.series([disableScrolling, beginAnimation]);
+    setTimeout(checkAjaxTrigger(topBufferRect), 0);
+    async.series([disableScrolling, () => { beginAnimation(topBufferRect) }]);
   }
 }
 
@@ -57,24 +70,22 @@ function onNotVisible() {
 }
 
 function resetAnimation(callback) {
-  const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
+  const topBufferRect = buffer.getBoundingClientRect();
   if (topBufferRect.bottom > 0) {
     window.scrollTo(0, window.pageYOffset + topBufferRect.bottom);
   }
   if (callback) callback();
 }
 
-function checkAjaxTrigger() {
-  const ajaxTriggerRect = document.getElementById('ajax-trigger').getBoundingClientRect();
-  if (ajaxTriggerRect.bottom > 0) {
-    setTimeout(() => {
-      console.log('data loaded;');
-    }, 100);
+function checkAjaxTrigger(ajaxTriggerRect) {
+  // const ajaxTriggerRect = document.getElementById('ajax-trigger').getBoundingClientRect();
+  if (ajaxTriggerRect.top > 0) {
+    setTimeout(onRefresh, 0);
   }
 }
 
-function beginAnimation() {
-  const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
+function beginAnimation(topBufferRect) {
+  // const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
   isAnimating = true;
 
   const current = { y: window.pageYOffset };
@@ -98,21 +109,19 @@ function cleanupAnimation(callback) {
   if (callback) callback();
 }
 
-function draw(target) {
-  target = target || 'scroller';
-
+function bootstrap(target, params = {}) {
   window.onload = onLoad;
-  window.onbeforeunload = onUnload;
 
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(target).innerHTML  = `
       <div id="inertial-container">
         <div id="top-buffer" class="buffer">
-          <div id="ajax-trigger">Loading</div>
+          Pull Down to Refresh
         </div>
-        <div class="scroller"></div>
-        <div id="bottom-buffer" class="buffer"></div>
+        <div id="card-feed" class="scroller"></div>
       </div>
     `;
+
+    onMount();
   });
 }
