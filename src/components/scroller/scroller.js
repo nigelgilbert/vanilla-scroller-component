@@ -116,7 +116,7 @@ function bootstrap(target, params = {}) {
     document.getElementById(target).innerHTML  = `
       <div id="inertial-container">
         <div id="top-buffer" class="buffer">
-          Pull Down to Refresh
+          Pull to Refresh
         </div>
         <div id="card-feed" class="scroller"></div>
       </div>

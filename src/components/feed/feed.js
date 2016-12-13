@@ -28,7 +28,7 @@ function generateCards(count) {
 }
 
 function bootstrap(target) {
-  cards = generateCards(5);
+  cards = generateCards(10);
   listDOMNode = document.getElementById(target); 
   listDOMNode.appendChild(cards);
 }
