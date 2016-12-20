@@ -6,29 +6,31 @@ let cards = [];
 let listDOMNode = null;
 let totalCount = 0;
 
-export const Feed = {
-  bootstrap: bootstrap,
-  refresh: refresh
-}
+export class Feed extends HTMLElement {
+  constructor() {
+    super();
+    this.innerHTML = `<ul id="card-list"></ul>`;
+    cards = generateCards(10);
+  }
 
-function refresh() {
-  listDOMNode.appendChild(generateCards(1));
+  connectedCallback() {
+    listDOMNode = document.getElementById('card-list');
+    listDOMNode.appendChild(cards);  
+  }
+
+  refresh() {
+    listDOMNode.appendChild(generateCards(1));
+  }
 }
 
 function generateCards(count) {
-  const frag = document.createDocumentFragment();
+  const fragment = document.createDocumentFragment();
   for (let i = 0; i < count; i++) {
     totalCount += 1;
     const card = document.createElement('li');
     card.className = 'card';
     card.innerHTML = `${totalCount}`;
-    frag.appendChild(card);
+    fragment.appendChild(card);
   }
-  return frag;
-}
-
-function bootstrap(target) {
-  cards = generateCards(10);
-  listDOMNode = document.getElementById(target); 
-  listDOMNode.appendChild(cards);
+  return fragment;
 }

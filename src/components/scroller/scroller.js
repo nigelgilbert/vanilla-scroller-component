@@ -5,47 +5,57 @@ import TWEEN from 'tween.js';
 import async from 'async';
 import tweener from '../../services/tweener.js';
 import visibility from '../../services/visibility.js';
-import './scroller.css';
+import styles from './scroller.css';
 
 import { Feed } from '../feed/feed.js';
 
+customElements.define('card-feed', Feed);
+
 let tween = null;
 let isAnimating = false;
+let buffer = null;
+let feed = null;
 
-let buffer;
+export class Scroller extends HTMLElement {
+  constructor() {
+    super();
+    this.innerHTML = `
+      <div id="inertial-container">
+        <div id="top-buffer" class="buffer">
+          Pull to Refresh
+        </div>
+        <div id="feed-container" class="scroller"></div>
+      </div>
+    `;
+  }
 
-export const Scroller = {
-  bootstrap: bootstrap
-  // onPulldown: onPulldown,
-  // onLoad: onLoad 
+  connectedCallback() {
+    buffer = document.getElementById('top-buffer');
+    async.series([resetAnimationPosition, enablePulldown]);
+    visibility(onNotVisible);
+    feed = new Feed();
+    document.getElementById('feed-container').appendChild(feed);
+  }
+
+  disconnectedCallback() {
+    window.onscroll = null;
+    window.onmousewheel = null;
+    cleanupAnimation();
+  }
 }
 
-function onLoad() {
-  async.series([resetAnimation, enableScrolling]);
-  visibility(onNotVisible);
-}
-
-function onMount() {
-  buffer = document.getElementById('top-buffer');
-  Feed.bootstrap('card-feed');
-}
-
-function onRefresh() {
-  Feed.refresh();
-}
-
-function enableScrolling(callback) {
-  window.onscroll = debounce(onScroll, 250);
-  window.onmousewheel = debounce(onScroll, 250);
-  document.body.style.overflow = "scroll";
+function enablePulldown(callback) {
+  window.onscroll = onScroll;
+  window.onmousewheel = onScroll;
+  document.body.style.overflowY = 'scroll';
   isAnimating = false;
   if (callback) callback();
 }
 
-function disableScrolling(callback) {
-  document.body.style.overflow = "hidden";
+function disablePulldown(callback) {
   window.onscroll = preventDefaultHandler;
   window.onmousewheel = preventDefaultHandler;
+  document.body.style.overflowY = 'hidden';
   if (callback) callback();
 }
 
@@ -57,35 +67,26 @@ function preventDefaultHandler(event) {
   event.returnValue = false;
 }
 
-function onScroll() {
+var onScroll = debounce(function onScroll() {
+  console.log('onscroll');
   const topBufferRect = buffer.getBoundingClientRect();
   if (!isAnimating && topBufferRect.bottom > 0) {
     setTimeout(checkAjaxTrigger(topBufferRect), 0);
-    async.series([disableScrolling, () => { beginAnimation(topBufferRect) }]);
+    async.series([disablePulldown, () => beginAnimation(topBufferRect)]);
   }
-}
+}, 250);
 
 function onNotVisible() {
-  async.series([cleanupAnimation, resetAnimation, enableScrolling]);
+  async.series([cleanupAnimation, resetAnimationPosition, enablePulldown]);
 }
 
-function resetAnimation(callback) {
-  const topBufferRect = buffer.getBoundingClientRect();
-  if (topBufferRect.bottom > 0) {
-    window.scrollTo(0, window.pageYOffset + topBufferRect.bottom);
-  }
-  if (callback) callback();
-}
-
-function checkAjaxTrigger(ajaxTriggerRect) {
-  // const ajaxTriggerRect = document.getElementById('ajax-trigger').getBoundingClientRect();
-  if (ajaxTriggerRect.top > 0) {
-    setTimeout(onRefresh, 0);
+function checkAjaxTrigger(topBufferRect) {
+  if (topBufferRect.top > 0) {
+    setTimeout(feed.refresh, 0);
   }
 }
 
 function beginAnimation(topBufferRect) {
-  // const topBufferRect = document.getElementById('top-buffer').getBoundingClientRect();
   isAnimating = true;
 
   const current = { y: window.pageYOffset };
@@ -97,31 +98,22 @@ function beginAnimation(topBufferRect) {
     .onUpdate(function() {
       window.scrollTo(0, this.y);
     })
-    .onComplete(() => async.series([cleanupAnimation, enableScrolling]))
+    .onComplete(() => async.series([cleanupAnimation, enablePulldown]))
     .start();
+}
+
+function resetAnimationPosition(callback) {
+  const topBufferRect = buffer.getBoundingClientRect();
+  if (topBufferRect.bottom > 0) {
+    window.scrollTo(0, window.pageYOffset + topBufferRect.bottom);
+  }
+  if (callback) callback();
 }
 
 function cleanupAnimation(callback) {
   if (tween !== null) {
-    // teen.stop(); is this necessary?
+    tween.stop();
     tween = null;
   };
   if (callback) callback();
-}
-
-function bootstrap(target, params = {}) {
-  window.onload = onLoad;
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById(target).innerHTML  = `
-      <div id="inertial-container">
-        <div id="top-buffer" class="buffer">
-          Pull to Refresh
-        </div>
-        <div id="card-feed" class="scroller"></div>
-      </div>
-    `;
-
-    onMount();
-  });
 }

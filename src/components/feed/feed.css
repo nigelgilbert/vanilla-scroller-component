@@ -4,8 +4,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border-left: 1px solid;
-  border-right: 1px solid;
   border-bottom: 1px solid;
   height: 200px;
   background-color: #FFFFFF;
@@ -15,4 +13,10 @@
   color: #B0BEC5;
   font-family: Arial;
   font-size: 40px;
+  width:100%;
+}
+
+#card-list {
+  margin: 0;
+  padding: 0;
 }
