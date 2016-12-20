@@ -35,6 +35,6 @@ export default function tweener(initial, target, duration) {
 // Calls itself (thereby updating the tween) until the animation
 // is complete.
 function updateTween(time) {
-  TWEEN.update(time);
   if (isTweening) requestAnimationFrame(updateTween);
+  TWEEN.update(time);
 }

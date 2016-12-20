@@ -1,6 +1,9 @@
-"use strict";
+'use strict';
 
-import "./index.html";
-import { Scroller } from "./components/scroller.js";
+import 'document-register-element';
+import './vendor/native-shim.js';
 
-Scroller.draw();
+import { Scroller } from './components/scroller/scroller.js';
+
+customElements.define('pull-refresh', Scroller);
+document.getElementById('scroller-demo').appendChild(new Scroller());
